@@ -1,0 +1,94 @@
+syntax = "proto3";
+
+package auction.v1;
+
+import "google/type/datetime.proto";
+/*
+import "google/protobuf/duration.proto";
+import "google/protobuf/empty.proto";
+import "google/protobuf/timestamp.proto";
+import "google/rpc/status.proto";
+*/
+
+// http annotations
+import "google/api/annotations.proto";
+
+service matchService {
+  // Creates a new bid for an item.
+  rpc CreateBid(CreateBidRequest) returns (Bid) {
+    // curl -d '{"item_id":1, "user_id":2}' http://DOMAIN_NAME/v1/bid
+    option (google.api.http) = {
+      post: "/v1/bid"
+      body: "bid"
+    };
+  }
+  // Get the highest bid for an item.
+  rpc GetHighestBid(GetHighestBidRequest) returns (Bid) {
+    // curl http://DOMAIN_NAME/v1/items/1/bids/highest
+    option (google.api.http) = {
+      get: "/v1/items/{id}/bids/highest"
+    };
+  }
+  // Get all bids for an item.
+  rpc GetBids(GetBidsRequest) returns (Bids) {
+    // curl http://DOMAIN_NAME/v1/item/{id}/bids
+    option (google.api.http) = {
+      get: "/v1/item/{id}/bids"
+    };
+  }
+  // Get all items a user holds bids for.
+  rpc GetItemsForUserBids(GetItemsForUserBidsRequest) returns (Items) {
+    // curl http://DOMAIN_NAME/v1/user/{id}/bids/items
+    option (google.api.http) = {
+      get: "/v1/user/{id}/bids/items"
+    };
+  }
+}
+
+// Request message for CreateBid method.
+message CreateBidRequest {
+  // The bid resource to create.
+  Bid bid = 1;
+}
+
+// A bid resource.
+message Bid {
+  // A unique bid id.
+  int64 id = 1;
+  int64 item_id = 2;
+  int64 user_id = 3;
+}
+
+// Request message for GetHighestBid method.
+message GetHighestBidRequest {
+  // The item resource to get the highest bid for.
+  int64 id = 1;
+}
+
+// Request message for GetBids method.
+message GetBidsRequest {
+  // The item resource to get all bids for.
+  int64 id = 1;
+}
+
+// A bids resource.
+message Bids {
+  repeated Bid bids = 1;
+}
+
+// Request message for GetItemsForUserBids method.
+message GetItemsForUserBidsRequest {
+  // The user resource to get items.
+  int64 id = 1;
+}
+
+// An item resource.
+message Item {
+  // A unique item id.
+  int64 id = 1;
+}
+
+// A items resource.
+message Items {
+  repeated Item items = 1;
+}
