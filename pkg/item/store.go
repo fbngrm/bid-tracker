@@ -1,4 +1,4 @@
-package events
+package item
 
 import (
 	"errors"
@@ -6,37 +6,36 @@ import (
 	"sync"
 
 	"github.com/fbngrm/bid-tracker/pkg/bid"
-	"github.com/fbngrm/bid-tracker/pkg/item"
 	"github.com/google/uuid"
 )
 
-var eventStore *EventStore
+var itemStore *ItemStore
 
-// We use pessimistic locking as a concurrency model for our event store.
+// We use pessimistic locking as a concurrency model for the item store.
 // Since we expect many concurrent and conflicting writes (bids), we cannot
 // guarantee data consistency using an optimistic locking approach.
 // For performance reasons, we choose locking over channel synchronization.
 
 // Note, the mutex must not be copied after first use.
-// In other words, use pointer receivers for EventStore methods.
-type EventStore struct {
+// In other words, use pointer receivers for ItemStore methods.
+type ItemStore struct {
 	// a read/write mutex is favourable over mutex in this scenario since
 	// it can be held by an arbitrary number of readers or a single writer
 	// whereas a "regular" mutex can be held by a single reader or writer only
 	sync.RWMutex
-	events map[uuid.UUID]*item.Item
+	items map[uuid.UUID]*Item
 }
 
-// We want to make sure only a single instance of EventStore exists.
-func NewStore() *EventStore {
-	if eventStore == nil {
-		eventStore = &EventStore{}
+// We want to make sure only a single instance of ItemStore exists.
+func NewStore() *ItemStore {
+	if itemStore == nil {
+		itemStore = &ItemStore{}
 	}
-	return eventStore
+	return itemStore
 }
 
 // Idempotent, already registered items are ignored.
-func (es *EventStore) Register(i *item.Item) error {
+func (es *ItemStore) Register(i *Item) error {
 	es.Lock()
 	defer es.Unlock()
 
@@ -44,15 +43,15 @@ func (es *EventStore) Register(i *item.Item) error {
 		return errors.New("could not register, item is nil")
 	}
 
-	if _, ok := es.events[i.ID]; ok {
+	if _, ok := es.items[i.ID]; ok {
 		return nil
 	}
-	es.events[i.ID] = i
+	es.items[i.ID] = i
 	return nil
 }
 
 // Fails if the bid's item is not registered.
-func (es *EventStore) Write(b *bid.Bid) error {
+func (es *ItemStore) Write(b *bid.Bid) error {
 	es.Lock()
 	defer es.Unlock()
 
@@ -60,13 +59,16 @@ func (es *EventStore) Write(b *bid.Bid) error {
 		return errors.New("could not bid, bid is nil")
 	}
 
-	item, ok := es.events[b.ID]
+	item, ok := es.items[b.ID]
 	if !ok {
-		return fmt.Errorf("could not bid [%s]: item not registered [%s]", b.ID, b.ItemID)
+		return fmt.Errorf("could get item for bid [%s], not registered [%s]", b.ID, b.ItemID)
 	}
 
 	// not concurrency safe but we locked the store
-	item.Bid(b)
+	err := item.addBid(b)
+	if err != nil {
+		return fmt.Errorf("could not bid [%s]: %w", b.ID, err)
+	}
 
 	return nil
 }
