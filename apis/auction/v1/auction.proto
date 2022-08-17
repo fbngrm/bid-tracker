@@ -47,9 +47,9 @@ message CreateBidRequest {
 // A bid resource.
 message Bid {
   // A unique bid id.
-  int64 id = 1;
-  int64 item_id = 2;
-  int64 user_id = 3;
+  string id = 1;
+  string item_id = 2;
+  string user_id = 3;
   // varint encoding, 4 Bytes only until 2038
   google.protobuf.Timestamp timestamp = 4;
 }
@@ -57,13 +57,13 @@ message Bid {
 // Request message for GetHighestBid method.
 message GetHighestBidRequest {
   // The item resource to get the highest bid for.
-  int64 id = 1;
+  string id = 1;
 }
 
 // Request message for GetBids method.
 message GetBidsRequest {
   // The item resource to get all bids for.
-  int64 id = 1;
+  string id = 1;
 }
 
 // A bids resource.
@@ -74,13 +74,13 @@ message Bids {
 // Request message for GetItemsForUserBids method.
 message GetItemsForUserBidsRequest {
   // The user resource to get items.
-  int64 id = 1;
+  string id = 1;
 }
 
 // An item resource.
 message Item {
   // A unique item id.
-  int64 id = 1;
+  string id = 1;
 }
 
 // A items resource.
