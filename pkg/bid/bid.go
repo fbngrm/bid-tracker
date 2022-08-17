@@ -16,7 +16,7 @@ type Bid struct {
 }
 
 // We want to know when a bid was created to be able to replay later.
-// We get a timestamp for free from gRPC.
+// We get a timestamp for free from gRPC (wow, that rhymes :)
 func NewBid(itemID, userID uuid.UUID, amount float32, t time.Time) (*Bid, error) {
 	id, err := uuid.NewRandom()
 	if err != nil {
