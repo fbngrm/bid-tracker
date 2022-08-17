@@ -6,7 +6,7 @@ import "google/protobuf/timestamp.proto";
 // http annotations
 import "google/api/annotations.proto";
 
-service matchService {
+service auctionService {
   // Creates a new bid for an item.
   rpc CreateBid(CreateBidRequest) returns (Bid) {
     // curl -d '{"item_id":1, "user_id":2}' http://DOMAIN_NAME/v1/bid
