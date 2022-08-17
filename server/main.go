@@ -51,7 +51,7 @@ func main() {
 	}()
 
 	// grpc
-	grpcServer, err := grpc.NewServer(ctx, db)
+	grpcServer, err := grpc.NewServer(ctx)
 	if err != nil {
 		log.Printf("could not init grpc server: %v\n", err)
 		os.Exit(1)

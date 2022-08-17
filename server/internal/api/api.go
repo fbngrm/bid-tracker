@@ -2,32 +2,51 @@ package api
 
 import (
 	"context"
+	"fmt"
 
 	auctionv1 "github.com/fbngrm/bid-tracker/gen/proto/go/auction/v1"
+	"github.com/google/uuid"
+	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
 type Api struct {
 	bidService Bidder
+	bidGetter  BidGetter
+	itemGetter ItemGetter
 }
 
-func NewApi(b Bidder) *Api {
+func NewApi(b Bidder, bg BidGetter, ig ItemGetter) *Api {
 	return &Api{
 		bidService: b,
+		bidGetter:  bg,
+		itemGetter: ig,
 	}
 }
 
-// the error handling is overly simplified here due to time constraints.
-// internal errors must not be exposed to the outside world!
+// Note, the error handling is overly simplified here due to time constraints. Internal errors must not be exposed to the outside world.
+// Also, we must escape logging of potentially harmful user input using %q formatting directive for strings.
+// Ideally, we log a correlation-id from the request, e.g. a trace-id, in all error logs.
+// We assume, an item and user with given id exist. In a more realistic scenario, we must assert this.
 func (a *Api) CreateBid(ctx context.Context, in *auctionv1.CreateBidRequest) (*auctionv1.Bid, error) {
-	// we need to take special care here since all request input is potentially harmful
+	itemID, err := uuid.Parse(in.Bid.ItemId)
+	if err != nil {
+		return nil, fmt.Errorf("could not parse uuid for item id [%q]: %w", in.Bid.ItemId, err)
+	}
 
-	// Id     int64 `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
-	// ItemId int64 `protobuf:"varint,2,opt,name=item_id,json=itemId,proto3" json:"item_id,omitempty"`
-	// UserId int64 `protobuf:"varint,3,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
+	userID, err := uuid.Parse(in.Bid.UserId)
+	if err != nil {
+		return nil, fmt.Errorf("could not parse uuid for user id [%q]: %w", in.Bid.UserId, err)
+	}
 
-	// // varint encoding, 4 Bytes only until 2038
-	// Timestamp *timestamppb.Timestamp `protobuf:"bytes,4,opt,name=timestamp,proto3" json:"timestamp,omitempty"`
+	bid, err := a.bidService.CreateBid(itemID, userID, in.Bid.Amount, in.Bid.Timestamp.AsTime())
+	if err != nil {
+		return nil, fmt.Errorf("could not create bid from request [%q]: %w", in.Bid.UserId, err)
+	}
 
-	// thus, we cannot just assert a type to the req.Material
-	return nil, nil
+	return &auctionv1.Bid{
+		Id:        bid.ID.String(),
+		ItemId:    bid.ItemID.String(),
+		UserId:    bid.UserID.String(),
+		Timestamp: timestamppb.New(bid.Timestamp),
+	}, nil
 }

@@ -8,10 +8,9 @@ import (
 	"github.com/google/uuid"
 )
 
-// Note, Item is not safe for concurrent use and should be used via the
-// store only. We encapsulate fields and methods that need to be protected
-// on package boundary.
-// TODO: provide serialziation for global scope
+// Note, Item is not safe for concurrent use and is intended to be used via a store only.
+// Thus, we encapsulate fields and methods that need to be protected on package boundary.
+// TODO: provide serialziation accessible from outside the package.
 type Item struct {
 	ID      uuid.UUID // uuid RFC 4122
 	name    string
@@ -19,10 +18,10 @@ type Item struct {
 	bids    []*bid.Bid
 }
 
-func NewItem(name string) (*Item, error) {
+func newItem(name string) (*Item, error) {
 	id, err := uuid.NewRandom()
 	if err != nil {
-		// note, we must escape name since it is potentially harmful user input that we don't want to log unescaped
+		// note, escape name when logging
 		return nil, fmt.Errorf("could not generate id [%q]: %w", name, err)
 	}
 	return &Item{
@@ -46,10 +45,8 @@ func (i *Item) addBid(b *bid.Bid) error {
 	}
 
 	// add the bid
-	// likely, performance could be optimized by keeping track of
-	// length and capacity and utilizing the underlaying array manually
-	// though, this is error prone when not done properly so I consider
-	// it out of scope of this challenge
+	// likely, performance could be optimized by keeping track of length and capacity and utilizing the underlaying array
+	// manually. though, this is error prone when not done carefully so I consider it out of scope of this challenge
 	i.bids = append(i.bids, b)
 
 	// earlier bids with the same amount are staying highest
