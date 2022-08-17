@@ -6,7 +6,7 @@ import "google/protobuf/timestamp.proto";
 // http annotations
 import "google/api/annotations.proto";
 
-service auctionService {
+service Service {
   // Creates a new bid for an item.
   rpc CreateBid(CreateBidRequest) returns (Bid) {
     // curl -d '{"item_id":1, "user_id":2}' http://DOMAIN_NAME/v1/bid
@@ -50,8 +50,9 @@ message Bid {
   string id = 1;
   string item_id = 2;
   string user_id = 3;
+  float amount = 4;
   // varint encoding, 4 Bytes only until 2038
-  google.protobuf.Timestamp timestamp = 4;
+  google.protobuf.Timestamp timestamp = 5;
 }
 
 // Request message for GetHighestBid method.
