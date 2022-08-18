@@ -22,15 +22,19 @@ type Server struct {
 func NewServer(ctx context.Context) (*Server, error) {
 	// deps
 	itemService := item.NewService()
+	userService := user.NewService()
 	bidService := bid.NewService(
 		itemService,
-		user.Service{},
+		userService,
 	)
-	api := api.NewApi(bidService, itemService)
+	handler := api.NewApi(bidService, itemService, userService)
 
 	// note, not a production ready config
 	server := grpc.NewServer()
-	apiv1.RegisterAuctionServiceServer(server, api)
+	apiv1.RegisterServiceServer(server, handler)
+
+	// seed
+	userService.
 
 	return &Server{
 		server: server,

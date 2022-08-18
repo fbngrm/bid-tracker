@@ -33,7 +33,7 @@ func (s *Service) CreateItem(ctx context.Context, name string) (*Item, error) {
 	return i, nil
 }
 
-func (s *Service) PlaceBid(ctx context.Context, b *bid.Bid) error {
+func (s *Service) PlaceBidForItem(ctx context.Context, b *bid.Bid) error {
 	err := s.store.write(ctx, b)
 	if err != nil {
 		return fmt.Errorf("could not write bid [%s] to item store: %w", b.ID.String(), err)
@@ -49,7 +49,7 @@ func (s *Service) GetHighestBidForItem(ctx context.Context, itemID uuid.UUID) (*
 	return b, nil
 }
 
-func (s *Service) GetAllBidsForItem(ctx context.Context, itemID uuid.UUID) ([]*bid.Bid, error) {
+func (s *Service) GetBidsForItem(ctx context.Context, itemID uuid.UUID) ([]*bid.Bid, error) {
 	bids, err := s.store.readBids(ctx, itemID)
 	if err != nil {
 		return nil, fmt.Errorf("could not read bids for item [%s] from store: %w", itemID.String(), err)

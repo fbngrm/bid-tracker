@@ -22,7 +22,7 @@ func main() {
 	flag.StringVar(&grpcEndpoint, "grpc-endpoint", ":8080", "gRPC server endpoint")
 	flag.Parse()
 
-	// TODO: add redis as event store for aggregates
+	// todo, add redis as event store for aggregates
 
 	ctx, cancel := context.WithCancel(context.Background())
 
@@ -76,17 +76,13 @@ func main() {
 		os.Exit(1)
 	}()
 
-	// shutdown
+	// shutdown servers
 	graceful := true
 	if err := httpServer.Shutdown(ctx); err != nil {
 		graceful = false
 		log.Printf("error shutting down http server: %q\n", err)
 	}
 	grpcServer.Shutdown()
-	if err := db.Close(); err != nil {
-		graceful = false
-		log.Printf("error shutting down database: %q\n", err)
-	}
 
 	shutdownCancel()
 	log.Println("shutdown complete")

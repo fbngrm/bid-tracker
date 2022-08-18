@@ -15,8 +15,8 @@ type BidService interface {
 
 type ItemService interface {
 	GetHighestBidForItem(ctx context.Context, itemID uuid.UUID) (*bid.Bid, error)
-	GetItemsForBids(ctx context.Context, bids []*bid.Bid) ([]*item.Item, error)
-	GetBidsForItem(ctx context.Context, itemId uuid.UUID) ([]*bid.Bid, error)
+	GetItemsForBids(ctx context.Context, bidIDs []uuid.UUID) ([]*item.Item, error)
+	GetBidsForItem(ctx context.Context, itemID uuid.UUID) ([]*bid.Bid, error)
 }
 
 type UserService interface {

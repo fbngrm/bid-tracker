@@ -5,7 +5,7 @@ import (
 	"errors"
 	"fmt"
 
-	auctionv1 "github.com/fbngrm/bid-tracker/gen/proto/go/auction/v1"
+	apiv1 "github.com/fbngrm/bid-tracker/gen/proto/go/auction/v1"
 	"github.com/google/uuid"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
@@ -16,10 +16,11 @@ type Api struct {
 	userService UserService
 }
 
-func NewApi(b BidService, g ItemService) *Api {
+func NewApi(bs BidService, is ItemService, us UserService) *Api {
 	return &Api{
-		bidService:  b,
-		itemService: g,
+		bidService:  bs,
+		itemService: is,
+		userService: us,
 	}
 }
 
@@ -27,7 +28,7 @@ func NewApi(b BidService, g ItemService) *Api {
 // to the outside world. Also, we must escape logging of potentially harmful user input using %q formatting directive
 // for strings. Ideally, we log a correlation-id from the request, e.g. a trace-id, in all error logs. We assume, an
 // item and user with given id exist. In a more realistic scenario, we must assert this.
-func (a *Api) CreateBid(ctx context.Context, in *auctionv1.CreateBidRequest) (*auctionv1.Bid, error) {
+func (a *Api) CreateBid(ctx context.Context, in *apiv1.CreateBidRequest) (*apiv1.Bid, error) {
 	if in == nil {
 		return nil, errors.New("could not create bid, request is nil")
 	}
@@ -47,7 +48,7 @@ func (a *Api) CreateBid(ctx context.Context, in *auctionv1.CreateBidRequest) (*a
 		return nil, fmt.Errorf("could not create bid from request [%q]: %w", in.Bid.UserId, err)
 	}
 
-	return &auctionv1.Bid{
+	return &apiv1.Bid{
 		Id:        bid.ID.String(),
 		ItemId:    bid.ItemID.String(),
 		UserId:    bid.UserID.String(),
@@ -55,7 +56,7 @@ func (a *Api) CreateBid(ctx context.Context, in *auctionv1.CreateBidRequest) (*a
 	}, nil
 }
 
-func (a *Api) GetHighestBidForItem(ctx context.Context, in *auctionv1.GetHighestBidRequest) (*auctionv1.Bid, error) {
+func (a *Api) GetHighestBid(ctx context.Context, in *apiv1.GetHighestBidRequest) (*apiv1.Bid, error) {
 	if in == nil {
 		return nil, errors.New("could not get highest bid, request is nil")
 	}
@@ -69,7 +70,7 @@ func (a *Api) GetHighestBidForItem(ctx context.Context, in *auctionv1.GetHighest
 	if err != nil {
 		return nil, fmt.Errorf("could not get highest bid for item [%q]: %w", in.ItemId, err)
 	}
-	return &auctionv1.Bid{
+	return &apiv1.Bid{
 		Id:        bid.ID.String(),
 		ItemId:    bid.ItemID.String(),
 		UserId:    bid.UserID.String(),
@@ -77,7 +78,7 @@ func (a *Api) GetHighestBidForItem(ctx context.Context, in *auctionv1.GetHighest
 	}, nil
 }
 
-func (a *Api) GetBidsForItem(ctx context.Context, in *auctionv1.GetBidsRequest) (*auctionv1.Bids, error) {
+func (a *Api) GetBids(ctx context.Context, in *apiv1.GetBidsRequest) (*apiv1.Bids, error) {
 	if in == nil {
 		return nil, errors.New("could not get highest bid, request is nil")
 	}
@@ -92,19 +93,19 @@ func (a *Api) GetBidsForItem(ctx context.Context, in *auctionv1.GetBidsRequest) 
 		return nil, fmt.Errorf("could not get bids for item [%q]: %w", in.ItemId, err)
 	}
 
-	bids := make([]*auctionv1.Bid, len(itemBids))
+	bids := make([]*apiv1.Bid, len(itemBids))
 	for i, b := range itemBids {
-		bids[i] = &auctionv1.Bid{
+		bids[i] = &apiv1.Bid{
 			Id:        b.ID.String(),
 			ItemId:    b.ItemID.String(),
 			UserId:    b.UserID.String(),
 			Timestamp: timestamppb.New(b.Timestamp),
 		}
 	}
-	return &auctionv1.Bids{Bids: bids}, nil
+	return &apiv1.Bids{Bids: bids}, nil
 }
 
-func (a *Api) GetItemsForUserBids(ctx context.Context, in *auctionv1.GetItemsForUserBidsRequest) (*auctionv1.Items, error) {
+func (a *Api) GetItemsForUserBids(ctx context.Context, in *apiv1.GetItemsForUserBidsRequest) (*apiv1.Items, error) {
 	if in == nil {
 		return nil, errors.New("could not get highest bid, request is nil")
 	}
@@ -119,17 +120,22 @@ func (a *Api) GetItemsForUserBids(ctx context.Context, in *auctionv1.GetItemsFor
 		return nil, fmt.Errorf("could not get bids for user id [%q]: %w", in.UserId, err)
 	}
 
-	storeItems, err := a.itemService.GetItemsForBids(ctx, bids)
+	bidIDs := make([]uuid.UUID, len(bids))
+	for i, b := range bids {
+		bidIDs[i] = b.ID
+	}
+
+	storeItems, err := a.itemService.GetItemsForBids(ctx, bidIDs)
 	if err != nil {
 		return nil, fmt.Errorf("could not get items for bids for user id [%q]: %w", in.UserId, err)
 	}
 
-	items := make([]*auctionv1.Item, len(storeItems))
+	items := make([]*apiv1.Item, len(storeItems))
 	for i, it := range storeItems {
-		items[i] = &auctionv1.Item{
+		items[i] = &apiv1.Item{
 			Id:   it.ID.String(),
 			Name: it.Name,
 		}
 	}
-	return &auctionv1.Items{Items: items}, nil
+	return &apiv1.Items{Items: items}, nil
 }

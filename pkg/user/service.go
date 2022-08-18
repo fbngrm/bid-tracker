@@ -12,6 +12,21 @@ type Service struct {
 	store *userStore
 }
 
+func NewService() *Service {
+	return &Service{
+		store: &userStore{},
+	}
+}
+
+func (s *Service) CreateUser(ctx context.Context) (*User, error) {
+	u, err := NewUser()
+	if err != nil {
+		return nil, fmt.Errorf("could not crate new user")
+	}
+	s.store.register(ctx, u)
+	return u, nil
+}
+
 func (s *Service) AddBidToUser(ctx context.Context, b *bid.Bid) error {
 	err := s.store.write(ctx, b)
 	if err != nil {
