@@ -24,6 +24,12 @@ generate:
 run: build
     docker-compose up
 
+test:
+    go test ./... -v --race --parallel 4
+
+benchmark:
+    go test ./... -bench=.
+
 run-server:
 	cd server
 	./server/server
