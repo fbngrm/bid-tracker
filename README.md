@@ -10,6 +10,8 @@ It also points out short-comings and potential optimizations.
 
 channels vs locks...
 
+go handlers ...
+
 ### Alternatives
 I'd like to outline two interesting approaches I stumbled upon.
 
@@ -38,7 +40,7 @@ Though, the REST API brings in some restrictions towards an asynchronous communi
 
 ## Notes
 - I put more comments than I normally would since this is a coding challenge and I wanted to explain my reasoning.
-- I worked roughly a day (8h) on the task but spend 3h only for research.
+- I worked slightly more than a day (8h) on the task but spend 3h only for research.
 - I really liked the task and the volume is good for a coding challenge imo.
 
 After implementing the prototype there are quite a few things that I would make differently when refactoring this towards a more mature version.
