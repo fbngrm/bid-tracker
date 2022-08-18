@@ -41,7 +41,7 @@ func (s *store) register(ctx context.Context, i *Item) error {
 	defer s.Unlock()
 
 	if i == nil {
-		return errors.New("could not register, item s nil")
+		return errors.New("could not register, item is nil")
 	}
 
 	if _, ok := s.items[i.ID]; ok {
