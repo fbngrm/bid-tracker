@@ -59,6 +59,8 @@ func NewServer(ctx context.Context) (*Server, error) {
 	fmt.Printf("item 1: id = %s\n", i1.ID.String())
 	fmt.Printf("item 2: id = %s\n", i2.ID.String())
 	fmt.Println("------------------------------------------------------")
+	fmt.Println("CURL EXAMPLES")
+	fmt.Println("------------------------------------------------------")
 	fmt.Println("Place a bid:")
 	fmt.Println(fmt.Sprintf(`curl -d '{"item_id":"%s", "user_id":"%s", "amount":1.5}' http://localhost:8081/v1/bid`, i1.ID.String(), u1.ID.String()))
 	fmt.Println("Get highest bid for item:")
@@ -67,6 +69,14 @@ func NewServer(ctx context.Context) (*Server, error) {
 	fmt.Printf("curl http://localhost:8081/v1/item/%s/bids\n", i1.ID.String())
 	fmt.Println("Get items for users bids:")
 	fmt.Printf("curl http://localhost:8081/v1/user/%s/bids/items\n", u1.ID.String())
+	fmt.Println("------------------------------------------------------")
+	fmt.Println("APACHE BENCH EXAMPLES")
+	fmt.Println("------------------------------------------------------")
+	fmt.Printf("ab -n 1000 -c 100 http://localhost:8081/v1/items/%s/bids/highest\n", i1.ID.String())
+	fmt.Printf("ab -n 1000 -c 100 http://localhost:8081/v1/item/%s/bids\n", i1.ID.String())
+	fmt.Printf("ab -n 1000 -c 100 http://localhost:8081/v1/user/%s/bids/items\n", u1.ID.String())
+	fmt.Println("Note, post.data needs to be a file containg the json data!")
+	fmt.Printf("ab -T 'application/x-www-form-urlencoded' -n 1000 -c 100 -p post.data http://localhost:8081/v1/bid\n")
 	fmt.Println("======================================================")
 
 	return &Server{
