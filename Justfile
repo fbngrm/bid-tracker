@@ -21,9 +21,6 @@ setup: setup-go generate
 generate:
 	make gen/proto/go/auction/v1/*.go >/dev/null
 
-run: build
-    docker-compose up
-
 test:
     go test ./... -v --race --parallel 4
 
@@ -31,8 +28,8 @@ benchmark:
     go test ./... -bench=.
 
 run-server:
-	cd server
-	./server/server
+	go mod download
+	go run server/main.go
 
 client: generate
 	cd cmd/client && go build
