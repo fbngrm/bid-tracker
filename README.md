@@ -21,11 +21,7 @@ A `Makefile` is provided for making build dependencies to avoid re-running time-
 Either just use the just task runner or copy the commands from the [Justfile](./Justfile).
 
 ```
-# downloads all dependencies
 just run-server
-
-# runs the binary
-just run-binary
 ```
 
 The app logs seed data and commands to interact with the API as a starting point.
