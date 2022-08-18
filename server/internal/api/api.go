@@ -45,13 +45,14 @@ func (a *Api) CreateBid(ctx context.Context, in *apiv1.CreateBidRequest) (*apiv1
 
 	bid, err := a.bidService.CreateBid(ctx, itemID, userID, in.Bid.Amount, in.Bid.Timestamp.AsTime())
 	if err != nil {
-		return nil, fmt.Errorf("could not create bid from request [%q]: %w", in.Bid.UserId, err)
+		return nil, fmt.Errorf("could not create bid from request for user [%s] and item [%s]: %w", userID, itemID, err)
 	}
 
 	return &apiv1.Bid{
 		Id:        bid.ID.String(),
 		ItemId:    bid.ItemID.String(),
 		UserId:    bid.UserID.String(),
+		Amount:    bid.Amount,
 		Timestamp: timestamppb.New(bid.Timestamp),
 	}, nil
 }
@@ -74,6 +75,7 @@ func (a *Api) GetHighestBid(ctx context.Context, in *apiv1.GetHighestBidRequest)
 		Id:        bid.ID.String(),
 		ItemId:    bid.ItemID.String(),
 		UserId:    bid.UserID.String(),
+		Amount:    bid.Amount,
 		Timestamp: timestamppb.New(bid.Timestamp),
 	}, nil
 }
@@ -99,6 +101,7 @@ func (a *Api) GetBids(ctx context.Context, in *apiv1.GetBidsRequest) (*apiv1.Bid
 			Id:        b.ID.String(),
 			ItemId:    b.ItemID.String(),
 			UserId:    b.UserID.String(),
+			Amount:    b.Amount,
 			Timestamp: timestamppb.New(b.Timestamp),
 		}
 	}
@@ -120,12 +123,12 @@ func (a *Api) GetItemsForUserBids(ctx context.Context, in *apiv1.GetItemsForUser
 		return nil, fmt.Errorf("could not get bids for user id [%q]: %w", in.UserId, err)
 	}
 
-	bidIDs := make([]uuid.UUID, len(bids))
+	itemIDs := make([]uuid.UUID, len(bids))
 	for i, b := range bids {
-		bidIDs[i] = b.ID
+		itemIDs[i] = b.ItemID
 	}
 
-	storeItems, err := a.itemService.GetItemsForBids(ctx, bidIDs)
+	storeItems, err := a.itemService.GetItemsForBids(ctx, itemIDs)
 	if err != nil {
 		return nil, fmt.Errorf("could not get items for bids for user id [%q]: %w", in.UserId, err)
 	}

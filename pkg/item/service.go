@@ -11,12 +11,12 @@ import (
 // Service exposes access to the item store to the outside world.
 type Service struct {
 	// for now we keep a tight coupling here
-	store *itemStore
+	store *store
 }
 
 func NewService() *Service {
 	return &Service{
-		store: &itemStore{},
+		store: newStore(),
 	}
 }
 

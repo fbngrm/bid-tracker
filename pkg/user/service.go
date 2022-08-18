@@ -9,12 +9,12 @@ import (
 )
 
 type Service struct {
-	store *userStore
+	store *store
 }
 
 func NewService() *Service {
 	return &Service{
-		store: &userStore{},
+		store: newStore(),
 	}
 }
 

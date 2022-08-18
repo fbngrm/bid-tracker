@@ -1,4 +1,4 @@
-package server
+package main
 
 import (
 	"context"
@@ -51,6 +51,7 @@ func main() {
 	}()
 
 	// grpc
+	// note, seeding happens in grpc server
 	grpcServer, err := grpc.NewServer(ctx)
 	if err != nil {
 		log.Printf("could not init grpc server: %v\n", err)

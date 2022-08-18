@@ -10,46 +10,57 @@ import (
 	"github.com/google/uuid"
 )
 
-type userStore struct {
+type store struct {
 	sync.RWMutex
-	users map[uuid.UUID]User
+	users map[uuid.UUID]*User
+}
+
+func newStore() *store {
+	return &store{
+		users: make(map[uuid.UUID]*User),
+	}
 }
 
 // Idempotent, already registered users are ignored.
-func (us *userStore) register(ctx context.Context, u User) {
-	us.Lock()
-	defer us.Unlock()
+func (s *store) register(ctx context.Context, u *User) error {
+	s.Lock()
+	defer s.Unlock()
 
-	if _, ok := us.users[u.ID]; ok {
-		return
+	if u == nil {
+		return errors.New("could not register, user is nil")
 	}
-	us.users[u.ID] = u
+
+	if _, ok := s.users[u.ID]; ok {
+		return nil
+	}
+	s.users[u.ID] = u
+	return nil
 }
 
-func (us *userStore) write(ctx context.Context, b *bid.Bid) error {
-	us.Lock()
-	defer us.Unlock()
+func (s *store) write(ctx context.Context, b *bid.Bid) error {
+	s.Lock()
+	defer s.Unlock()
 
 	if b == nil {
 		return errors.New("could not write bid, bid is nil")
 	}
 
-	u, ok := us.users[b.UserID]
+	u, ok := s.users[b.UserID]
 	if !ok {
 		return fmt.Errorf("could not read user [%s], not registered", b.UserID)
 	}
 
 	u.bids = append(u.bids, b)
-	us.users[b.UserID] = u
+	s.users[b.UserID] = u
 
 	return nil
 }
 
-func (us *userStore) readBids(ctx context.Context, userID uuid.UUID) ([]*bid.Bid, error) {
-	us.RLock()
-	defer us.RUnlock()
+func (s *store) readBids(ctx context.Context, userID uuid.UUID) ([]*bid.Bid, error) {
+	s.RLock()
+	defer s.RUnlock()
 
-	u, ok := us.users[userID]
+	u, ok := s.users[userID]
 	if !ok {
 		return nil, fmt.Errorf("could not read user [%s], not registered", userID)
 	}
