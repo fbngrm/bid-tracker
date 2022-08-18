@@ -9,15 +9,15 @@ import (
 	"github.com/google/uuid"
 )
 
-type Bidder interface {
-	CreateBid(itemID, userID uuid.UUID, amount float32, t time.Time) (*bid.Bid, error)
-}
-
 type BidGetter interface {
-	GetHighestBidForItem(ctx context.Context, in *auctionv1.GetHighestBidRequest) (*auctionv1.Bid, error)
 	GetBidsForItem(ctx context.Context, in *auctionv1.GetBidsRequest) (*auctionv1.Bids, error)
 }
 
-type ItemGetter interface {
+type BidService interface {
+	CreateBid(ctx context.Context, itemID, userID uuid.UUID, amount float32, t time.Time) (*bid.Bid, error)
+}
+
+type ItemService interface {
+	GetHighestBidForItem(ctx context.Context, itemID uuid.UUID) (*bid.Bid, error)
 	GetItemsForUserBids(ctx context.Context, in *auctionv1.GetItemsForUserBidsRequest) (*auctionv1.Items, error)
 }

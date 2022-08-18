@@ -1,6 +1,7 @@
 package item
 
 import (
+	"context"
 	"errors"
 	"fmt"
 
@@ -9,7 +10,7 @@ import (
 )
 
 // Note, Item is not safe for concurrent use and is intended to be used via a store only.
-// Thus, we encapsulate fields and methods that need to be protected on package boundary.
+// Thus, we encapsulate fields and methods on package boundary, that need to be protected.
 // TODO: provide serialziation accessible from outside the package.
 type Item struct {
 	ID      uuid.UUID // uuid RFC 4122
@@ -31,7 +32,7 @@ func newItem(name string) (*Item, error) {
 	}, nil
 }
 
-func (i *Item) addBid(b *bid.Bid) error {
+func (i *Item) addBid(ctx context.Context, b *bid.Bid) error {
 	if b == nil {
 		return errors.New("could not add bid, bid is nil")
 	}

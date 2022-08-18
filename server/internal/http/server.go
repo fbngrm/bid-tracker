@@ -40,7 +40,7 @@ func NewServer(ctx context.Context, grpcEndpoint string) (*Server, error) {
 
 	// regiester with gRPC endpoint
 	opts := []grpc.DialOption{grpc.WithTransportCredentials(insecure.NewCredentials())}
-	err := gw.RegisterMatchServiceHandlerFromEndpoint(ctx, mux, grpcEndpoint, opts)
+	err := gw.RegisterServiceHandlerFromEndpoint(ctx, mux, grpcEndpoint, opts)
 	if err != nil {
 		return nil, fmt.Errorf("could not register mux router with gRPC endpoint: %v", err)
 	}

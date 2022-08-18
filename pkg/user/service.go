@@ -1,9 +1,14 @@
 package user
 
-import "github.com/fbngrm/bid-tracker/pkg/bid"
+import (
+	"context"
+	"errors"
 
-type UserService struct{}
+	"github.com/fbngrm/bid-tracker/pkg/bid"
+)
 
-func (s *UserService) AddBidToUser(b *bid.Bid) error {
-	return nil
+type Service struct{}
+
+func (s *Service) AddBidToUser(ctx context.Context, b *bid.Bid) error {
+	return errors.New("not implemented")
 }

@@ -7,6 +7,9 @@ import (
 	"net"
 
 	apiv1 "github.com/fbngrm/bid-tracker/gen/proto/go/auction/v1"
+	"github.com/fbngrm/bid-tracker/pkg/bid"
+	"github.com/fbngrm/bid-tracker/pkg/item"
+	"github.com/fbngrm/bid-tracker/pkg/user"
 	"github.com/fbngrm/bid-tracker/server/internal/api"
 	"google.golang.org/grpc"
 )
@@ -18,11 +21,16 @@ type Server struct {
 // NewServer returns an Server instance with a service attached.
 func NewServer(ctx context.Context) (*Server, error) {
 	// deps
-	api := api.NewApi()
+	itemService := item.NewService()
+	bidService := bid.NewService(
+		itemService,
+		user.Service{},
+	)
+	api := api.NewApi(bidService, itemService)
 
 	// note, not a production ready config
 	server := grpc.NewServer()
-	apiv1.RegisterMatchServiceServer(server, api)
+	apiv1.RegisterAuctionServiceServer(server, api)
 
 	return &Server{
 		server: server,

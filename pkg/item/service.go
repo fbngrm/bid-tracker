@@ -1,39 +1,61 @@
 package item
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/fbngrm/bid-tracker/pkg/bid"
+	"github.com/google/uuid"
 )
 
-type ItemService struct {
+// Service exposes access to the item store to the outside of the package.
+type Service struct {
 	// for now we keep a tight coupling here
-	store *ItemStore
+	store *itemStore
 }
 
-func NewService() *ItemService {
-	return &ItemService{
-		store: &ItemStore{},
+func NewService() *Service {
+	return &Service{
+		store: &itemStore{},
 	}
 }
 
 // Note, we must escape logging of potentially harmful user input using %q formatting directive.
-func (s *ItemService) CreateItem(name string) (*Item, error) {
+func (s *Service) CreateItem(ctx context.Context, name string) (*Item, error) {
 	i, err := newItem(name)
 	if err != nil {
 		return nil, fmt.Errorf("could not create new item [%q]: %w", name, err)
 	}
-	err = s.store.register(i)
+	err = s.store.register(ctx, i)
 	if err != nil {
 		return nil, fmt.Errorf("could not register item [%q]: %w", name, err)
 	}
 	return i, nil
 }
 
-func (s *ItemService) PlaceBid(b *bid.Bid) error {
-	err := s.store.write(b)
+func (s *Service) PlaceBid(ctx context.Context, b *bid.Bid) error {
+	err := s.store.write(ctx, b)
 	if err != nil {
-		return fmt.Errorf("could not write bid [%q] to item store: %w", b.ID.String(), err)
+		return fmt.Errorf("could not write bid [%s] to item store: %w", b.ID.String(), err)
 	}
 	return nil
 }
+
+func (s *Service) GetHighestBidForItem(ctx context.Context, itemID uuid.UUID) (*bid.Bid, error) {
+	b, err := s.store.readHighest(ctx, itemID)
+	if err != nil {
+		return nil, fmt.Errorf("could not read item [%s] from store: %w", itemID.String(), err)
+	}
+	return b, nil
+}
+
+// func (s *Service) GetAllBidForItem(ctx context.Context, itemID uuid.UUID) (*[]bid.Bid, error) {
+// 	i, err := s.store.read(ctx, itemID)
+// 	if err != nil {
+// 		return nil, fmt.Errorf("could not read item [%s] from store: %w", itemID.String(), err)
+// 	}
+// 	if i == nil {
+// 		return nil, fmt.Errorf("could not get bids for item [%s], item in store is nil: %w", itemID.String(), err)
+// 	}
+// 	return i.bids, nil
+// }

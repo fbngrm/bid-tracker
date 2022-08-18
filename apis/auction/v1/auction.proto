@@ -19,7 +19,7 @@ service Service {
   rpc GetHighestBid(GetHighestBidRequest) returns (Bid) {
     // curl http://DOMAIN_NAME/v1/items/1/bids/highest
     option (google.api.http) = {
-      get: "/v1/items/{id}/bids/highest"
+      get: "/v1/items/{item_id}/bids/highest"
     };
   }
   // Get all bids for an item.
@@ -58,7 +58,7 @@ message Bid {
 // Request message for GetHighestBid method.
 message GetHighestBidRequest {
   // The item resource to get the highest bid for.
-  string id = 1;
+  string item_id = 1;
 }
 
 // Request message for GetBids method.
