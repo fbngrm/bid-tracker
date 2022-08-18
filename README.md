@@ -18,7 +18,7 @@ A `Makefile` is provided for making build dependencies to avoid re-running time-
 
 ## Running the app
 
-Either use just task runner or copy the commands from the [Justfile](./Justfile).
+Either just use the just task runner or copy the commands from the [Justfile](./Justfile).
 
 ```
 just run-server
@@ -43,24 +43,36 @@ Data structures and types are designed around domain boundaries, roughly followi
 The above approaches are not followed strictly since this is a prototype with tight time constraints.
 Though, it lays foundation for growing into a more complex codebase.
 
-## Event Sourcing
-Moving this project towards an event-driven (event-sourcing) architecture, the in-memory item store could be replaced by e.g. REDIS for storing items.
-This would provide the possibility for handling and restoring internal state, allows for scaling and fault tolerance.
-A message-broken would be used to communicate with other instances of the bid-tracker and services for user handling etc.
-Even though the REST API brings in some restrictions towards an asynchronous communication, this could be an attractive approach, depending on the exact requirements.
+## Tests
+I added only a few example unit and benchmark tests for the item store which holds the most complex code.
+Due to time constranits, I didn't add more tests.
+Subtests are run in parallel and tests contain programmatic concurrency.
+There is a Just recipe available to run tests in parallel and test for race conditions.
+
+```
+just test
+just benchmark
+```
+
+Additionally, the program prints some instructions on how to use apache-bench for load-testing.
 
 ## Notes
 - I put more comments than I normally would since this is a coding challenge and I wanted to explain my reasoning.
 - I worked slightly more than a day (8h) on the task but spend 3h only for research.
 - I really liked the task and the volume is good for a coding challenge imo.
-- I added a binary and the `/gen` and `/vendor` directories to keep installation requirements on the reviewer's machine a minimum in case they want to build the app. I wouldn't normally ship this with version control.
+
+## Closing Thoughts
 
 After implementing the prototype there are quite a few things that I would make differently when refactoring this towards a more mature version.
 I would be happy to discuss my learnings, optimizations and short-comings, in depth, in a potential next interview :)
 
----
+### Event Sourcing
+Moving this project towards an event-driven (event-sourcing) architecture, the in-memory item store could be replaced by e.g. REDIS for storing items.
+This would provide the possibility for handling and restoring internal state, allows for scaling and fault tolerance.
+A message-broken would be used to communicate with other instances of the bid-tracker and services for user handling etc.
+Even though the REST API brings in some restrictions towards an asynchronous communication, this could be an attractive approach, depending on the exact requirements.
 
-### Alternatives
+### Alternative Concurrency Models
 I'd like to mention these two interesting approaches I stumbled upon during research.
 
 #### Optimistic Locking (transpiled)
@@ -70,7 +82,7 @@ A [slide](https://www.usenix.org/system/files/atc21_slides_zhang-zhizhou.pdf) su
 And the original [publication](https://arxiv.org/pdf/2106.01710.pdf).
 
 #### Open Multithreaded Transactions
-Nested transaction to guarantee consistent state and fault tolerance. Probably not easily scaleable.
+Nested transactions to guarantee consistent state and fault tolerance. Probably not easily scaleable.
 The [paper](http://130.203.136.95/viewdoc/download?doi=10.1.1.20.1875&rep=rep1&type=pdf) describing the approach.
 
 
