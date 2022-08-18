@@ -27,6 +27,9 @@ test:
 benchmark:
     go test ./... -bench=.
 
+run-binary:
+    ./server/server
+
 run-server:
 	go mod download
 	go run server/main.go

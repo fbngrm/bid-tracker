@@ -60,6 +60,7 @@ Additionally, the program prints some instructions on how to use apache-bench fo
 - I put more comments than I normally would since this is a coding challenge and I wanted to explain my reasoning.
 - I worked slightly more than a day (8h) on the task but spend 3h only for research.
 - I really liked the task and the volume is good for a coding challenge imo.
+- I added a binary to the repo for review purposes which I normally wouldn't ship into version control. It increases the size of the repo also.
 
 ## Closing Thoughts
 
