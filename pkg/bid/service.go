@@ -26,16 +26,19 @@ func (s *Service) CreateBid(ctx context.Context, itemID, userID uuid.UUID, amoun
 		return nil, fmt.Errorf("could not create new bid for user [%s] for item [%s]: %w", userID, itemID, err)
 	}
 
+	// in a future event-based version, we would emit a 'BidCreated' event and consume it in a user service that would
+	// take care or adding it to the user. also, we could run it in a go routine here to optimize performance.
+	// fixme, we have to copy here to protect against race condition between itemStore and user. we should operate on
+	// copies by default
+	err = s.userService.AddBidToUser(ctx, b.Copy())
+	if err != nil {
+		return nil, fmt.Errorf("could not add bid to user [%s] for item [%s]: %w", userID, itemID, err)
+	}
+
 	err = s.itemService.PlaceBidForItem(ctx, b)
 	if err != nil {
 		return nil, fmt.Errorf("could not place bid for user [%s] for item [%s]: %w", userID, itemID, err)
 	}
 
-	// in a future event-based version, we would emit a 'BidCreated' event and consume it
-	// in a user service that would take care or adding it to the user
-	err = s.userService.AddBidToUser(ctx, b)
-	if err != nil {
-		return nil, fmt.Errorf("could not add bid to user [%s] for item [%s]: %w", userID, itemID, err)
-	}
 	return b, nil
 }

@@ -10,11 +10,11 @@ import (
 )
 
 // Note, Item is not safe for concurrent use and is intended to be used via a store only.
-// Thus, we encapsulate fields and methods on package boundary, that need to be protected.
-// TODO: provide serialziation accessible from outside the package.
+// Thus, we encapsulate fields and methods, that need to be protected, on package boundary.
+// We might want to operate on copies of bids instead of pointers to avoid copying them manually.
 type Item struct {
 	ID      uuid.UUID // uuid RFC 4122
-	name    string
+	Name    string
 	highest *bid.Bid
 	bids    []*bid.Bid
 }
@@ -27,7 +27,7 @@ func newItem(name string) (*Item, error) {
 	}
 	return &Item{
 		ID:   id,
-		name: name,
+		Name: name,
 		bids: make([]*bid.Bid, 0),
 	}, nil
 }
@@ -55,4 +55,12 @@ func (i *Item) addBid(ctx context.Context, b *bid.Bid) error {
 		i.highest = b
 	}
 	return nil
+}
+
+// Does not include bids for now, thus flat.
+func (i *Item) flatCopy() *Item {
+	return &Item{
+		ID:   i.ID,
+		Name: i.Name,
+	}
 }

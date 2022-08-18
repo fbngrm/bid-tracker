@@ -8,7 +8,7 @@ import (
 	"github.com/google/uuid"
 )
 
-// Service exposes access to the item store to the outside of the package.
+// Service exposes access to the item store to the outside world.
 type Service struct {
 	// for now we keep a tight coupling here
 	store *itemStore
@@ -49,13 +49,18 @@ func (s *Service) GetHighestBidForItem(ctx context.Context, itemID uuid.UUID) (*
 	return b, nil
 }
 
-// func (s *Service) GetAllBidForItem(ctx context.Context, itemID uuid.UUID) (*[]bid.Bid, error) {
-// 	i, err := s.store.read(ctx, itemID)
-// 	if err != nil {
-// 		return nil, fmt.Errorf("could not read item [%s] from store: %w", itemID.String(), err)
-// 	}
-// 	if i == nil {
-// 		return nil, fmt.Errorf("could not get bids for item [%s], item in store is nil: %w", itemID.String(), err)
-// 	}
-// 	return i.bids, nil
-// }
+func (s *Service) GetAllBidsForItem(ctx context.Context, itemID uuid.UUID) ([]*bid.Bid, error) {
+	bids, err := s.store.readBids(ctx, itemID)
+	if err != nil {
+		return nil, fmt.Errorf("could not read bids for item [%s] from store: %w", itemID.String(), err)
+	}
+	return bids, nil
+}
+
+func (s *Service) GetItemsForBids(ctx context.Context, itemIDs []uuid.UUID) ([]*Item, error) {
+	items, err := s.store.readItems(ctx, itemIDs)
+	if err != nil {
+		return nil, fmt.Errorf("could not read items from store: %w", err)
+	}
+	return items, nil
+}

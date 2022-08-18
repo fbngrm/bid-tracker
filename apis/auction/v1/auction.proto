@@ -26,14 +26,14 @@ service Service {
   rpc GetBids(GetBidsRequest) returns (Bids) {
     // curl http://DOMAIN_NAME/v1/item/{id}/bids
     option (google.api.http) = {
-      get: "/v1/item/{id}/bids"
+      get: "/v1/item/{item_id}/bids"
     };
   }
   // Get all items a user holds bids for.
   rpc GetItemsForUserBids(GetItemsForUserBidsRequest) returns (Items) {
     // curl http://DOMAIN_NAME/v1/user/{id}/bids/items
     option (google.api.http) = {
-      get: "/v1/user/{id}/bids/items"
+      get: "/v1/user/{user_id}/bids/items"
     };
   }
 }
@@ -64,7 +64,7 @@ message GetHighestBidRequest {
 // Request message for GetBids method.
 message GetBidsRequest {
   // The item resource to get all bids for.
-  string id = 1;
+  string item_id = 1;
 }
 
 // A bids resource.
@@ -75,13 +75,14 @@ message Bids {
 // Request message for GetItemsForUserBids method.
 message GetItemsForUserBidsRequest {
   // The user resource to get items.
-  string id = 1;
+  string user_id = 1;
 }
 
 // An item resource.
 message Item {
   // A unique item id.
   string id = 1;
+  string name = 2;
 }
 
 // A items resource.

@@ -13,12 +13,13 @@ import (
 type Api struct {
 	bidService  BidService
 	itemService ItemService
+	userService UserService
 }
 
-func NewApi(bs BidService, is ItemService) *Api {
+func NewApi(b BidService, g ItemService) *Api {
 	return &Api{
-		bidService:  bs,
-		itemService: is,
+		bidService:  b,
+		itemService: g,
 	}
 }
 
@@ -77,6 +78,58 @@ func (a *Api) GetHighestBidForItem(ctx context.Context, in *auctionv1.GetHighest
 }
 
 func (a *Api) GetBidsForItem(ctx context.Context, in *auctionv1.GetBidsRequest) (*auctionv1.Bids, error) {
+	if in == nil {
+		return nil, errors.New("could not get highest bid, request is nil")
+	}
+
+	itemID, err := uuid.Parse(in.ItemId)
+	if err != nil {
+		return nil, fmt.Errorf("could not parse uuid from item id [%q]: %w", in.ItemId, err)
+	}
+
+	itemBids, err := a.itemService.GetBidsForItem(ctx, itemID)
+	if err != nil {
+		return nil, fmt.Errorf("could not get bids for item [%q]: %w", in.ItemId, err)
+	}
+
+	bids := make([]*auctionv1.Bid, len(itemBids))
+	for i, b := range itemBids {
+		bids[i] = &auctionv1.Bid{
+			Id:        b.ID.String(),
+			ItemId:    b.ItemID.String(),
+			UserId:    b.UserID.String(),
+			Timestamp: timestamppb.New(b.Timestamp),
+		}
+	}
+	return &auctionv1.Bids{Bids: bids}, nil
 }
+
 func (a *Api) GetItemsForUserBids(ctx context.Context, in *auctionv1.GetItemsForUserBidsRequest) (*auctionv1.Items, error) {
+	if in == nil {
+		return nil, errors.New("could not get highest bid, request is nil")
+	}
+
+	userID, err := uuid.Parse(in.UserId)
+	if err != nil {
+		return nil, fmt.Errorf("could not parse uuid from user id [%q]: %w", in.UserId, err)
+	}
+
+	bids, err := a.userService.GetBidsForUser(ctx, userID)
+	if err != nil {
+		return nil, fmt.Errorf("could not get bids for user id [%q]: %w", in.UserId, err)
+	}
+
+	storeItems, err := a.itemService.GetItemsForBids(ctx, bids)
+	if err != nil {
+		return nil, fmt.Errorf("could not get items for bids for user id [%q]: %w", in.UserId, err)
+	}
+
+	items := make([]*auctionv1.Item, len(storeItems))
+	for i, it := range storeItems {
+		items[i] = &auctionv1.Item{
+			Id:   it.ID.String(),
+			Name: it.Name,
+		}
+	}
+	return &auctionv1.Items{Items: items}, nil
 }

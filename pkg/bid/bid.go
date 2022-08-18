@@ -32,3 +32,14 @@ func NewBid(itemID, userID uuid.UUID, amount float32, t time.Time) (*Bid, error)
 		Timestamp: t,
 	}, nil
 }
+
+func (b *Bid) Copy() *Bid {
+	v := *b
+	return &Bid{
+		ID:        v.ID,
+		ItemID:    v.ItemID,
+		UserID:    v.UserID,
+		Amount:    v.Amount,
+		Timestamp: v.Timestamp,
+	}
+}

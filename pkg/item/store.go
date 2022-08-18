@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log"
 	"sync"
 
 	"github.com/fbngrm/bid-tracker/pkg/bid"
@@ -23,7 +24,9 @@ type itemStore struct {
 	// it can be held by an arbitrary number of readers or a single writer.
 	// whereas a "regular" mutex can be held by a single reader or writer only
 	sync.RWMutex
-	items map[uuid.UUID]*Item // fixme, store is never copied so it does't make sense to use pointer
+	// fixme, store is never copied so it does't make sense to use pointer
+	// except we would add a mutex to Item (see below comment)
+	items map[uuid.UUID]*Item
 }
 
 // Idempotent, already registered items are ignored.
@@ -86,5 +89,58 @@ func (is *itemStore) readHighest(ctx context.Context, itemID uuid.UUID) (*bid.Bi
 		return nil, fmt.Errorf("could not get highest bid for item [%s], item in store is nil", itemID.String())
 	}
 
-	return i.highest, nil
+	return i.highest.Copy(), nil
+}
+
+func (is *itemStore) readBids(ctx context.Context, itemID uuid.UUID) ([]*bid.Bid, error) {
+	is.RLock()
+	defer is.RUnlock()
+
+	i, ok := is.items[itemID]
+	if !ok {
+		return nil, fmt.Errorf("could not read item [%s], not registered", itemID)
+	}
+
+	if i == nil {
+		return nil, fmt.Errorf("could not read item [%s], item in store is nil", itemID.String())
+	}
+
+	// we lock the entire store while copying, this is slow and not what we want.
+	// fix, lock item and unlock store or store copies in item directly
+	bids := make([]*bid.Bid, len(i.bids))
+	for i, b := range i.bids {
+		bids[i] = b.Copy()
+	}
+
+	return bids, nil
+}
+
+// Note, missing/unregistered items are logged. We probably want to have a more advanced error handling in a
+// future version. Especially in regard of eventual consistency stores might not always have converged when being accessed.
+func (is *itemStore) readItems(ctx context.Context, itemIDs []uuid.UUID) ([]*Item, error) {
+	is.RLock()
+	defer is.RUnlock()
+
+	var items []*Item
+	for _, itemID := range itemIDs {
+		i, ok := is.items[itemID]
+		if !ok {
+			log.Printf("could not read item [%s], not registered\n", itemID)
+			continue
+		}
+		if i == nil {
+			log.Printf("could not read item [%s], item in store is nil", itemID.String())
+			continue
+		}
+		items = append(items, i)
+	}
+
+	// we lock the entire store while copying, this is slow and not what we want.
+	// fix, lock item and unlock store or store copy of item directly
+	itemCopies := make([]*Item, len(items))
+	for i, it := range items {
+		itemCopies[i] = it.flatCopy()
+	}
+
+	return itemCopies, nil
 }
